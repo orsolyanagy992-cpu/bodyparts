@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testrészek - Angol-Magyar Szótanuló</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-indigo-600 mb-2">Testrészek (Body Parts)</h1>
+            <p class="text-slate-600">Gyakorold és sajátítsd el a testrészek angol nevét interaktív kártyákkal és teszttel!</p>
+            
+            <!-- Mode Switcher Tabs -->
+            <div class="flex justify-center mt-6 space-x-2">
+                <button onclick="switchTab('cards')" id="btn-cards" class="px-5 py-2.5 rounded-xl font-semibold transition bg-indigo-600 text-white shadow-md">Szókártyák</button>
+                <button onclick="switchTab('quiz')" id="btn-quiz" class="px-5 py-2.5 rounded-xl font-semibold transition bg-white text-slate-700 hover:bg-slate-100 shadow-sm border border-slate-200">Gyakorló teszt</button>
+            </div>
+        </header>
+
+        <!-- CARDS SECTION -->
+        <section id="section-cards" class="space-y-6">
+            <div class="bg-white rounded-2xl shadow-xl p-8 text-center min-h-[260px] flex flex-col justify-between border border-slate-100">
+                <div class="text-sm font-medium text-indigo-500 uppercase tracking-wider" id="card-counter">1. / 42. szó</div>
+                
+                <div class="my-auto cursor-pointer py-6" onclick="flipCard()">
+                    <div id="card-word" class="text-4xl font-bold text-slate-800 mb-2">head</div>
+                    <div id="card-hint-text" class="text-sm text-slate-400 italic">(Kattints a kártyára vagy a fordítás gombra a jelentéshez)</div>
+                    <div id="card-translation" class="text-3xl font-semibold text-emerald-600 mt-4 hidden">fej</div>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <button onclick="prevCard()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">&larr; Előző</button>
+                    <button onclick="flipCard()" class="px-5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-medium transition">Fordítás mutatása</button>
+                    <button onclick="nextCard()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">Következő &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Quick Vocabulary List Accordion/Grid -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
+                <h3 class="font-bold text-lg mb-4 text-slate-700">Az összes szó a listában:</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-2" id="vocab-grid">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </section>
+
+        <!-- QUIZ SECTION -->
+        <section id="section-quiz" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
+                <div class="flex justify-between items-center mb-6">
+                    <span id="quiz-progress" class="text-sm font-semibold text-slate-500">Kérdés: 1 / 10</span>
+                    <span id="quiz-score" class="text-sm font-semibold text-indigo-600">Pontszám: 0</span>
+                </div>
+
+                <div id="quiz-container">
+                    <h2 id="quiz-question" class="text-2xl font-bold text-slate-800 mb-6">Mi a magyar jelentése ennek: head?</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="quiz-options">
+                        <!-- Options generated dynamically -->
+                    </div>
+                </div>
+
+                <div id="quiz-results" class="hidden text-center py-8">
+                    <h3 class="text-3xl font-extrabold text-slate-800 mb-2">Gratulálok, vége a tesztnek!</h3>
+                    <p id="final-score-text" class="text-lg text-slate-600 mb-6">Elért pontszámod: 8/10</p>
+                    <button onclick="restartQuiz()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-md">Újra próbálom</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const vocabData = [
+            { en: "head", hu: "fej" },
+            { en: "hair", hu: "haj" },
+            { en: "forehead", hu: "homlok" },
+            { en: "eyebrows", hu: "szemöldökök" },
+            { en: "ear", hu: "fül" },
+            { en: "eyes", hu: "szemek" },
+            { en: "eyelashes", hu: "szempillák" },
+            { en: "cheek", hu: "pofi" },
+            { en: "nose", hu: "orr" },
+            { en: "tooth", hu: "fog" },
+            { en: "teeth", hu: "fogak" },
+            { en: "mouth", hu: "száj" },
+            { en: "lips", hu: "ajkak" },
+            { en: "tongue", hu: "nyelv" },
+            { en: "chin", hu: "áll" },
+            { en: "neck", hu: "nyak" },
+            { en: "throat", hu: "torok" },
+            { en: "shoulder", hu: "váll" },
+            { en: "chest", hu: "mellkas" },
+            { en: "back", hu: "hát" },
+            { en: "stomach, tummy, belly", hu: "has" },
+            { en: "waist", hu: "derék" },
+            { en: "hips", hu: "csípő" },
+            { en: "arm", hu: "kar" },
+            { en: "elbow", hu: "könyök" },
+            { en: "wrist", hu: "csukló" },
+            { en: "hand", hu: "kézfej" },
+            { en: "thumb", hu: "nagyujj" },
+            { en: "palm", hu: "tenyér" },
+            { en: "leg", hu: "láb" },
+            { en: "thigh", hu: "comb" },
+            { en: "knee", hu: "térd" },
+            { en: "ankle", hu: "boka" },
+            { en: "foot", hu: "lábfej(ek)" },
+            { en: "heel", hu: "sarok" },
+            { en: "toe", hu: "lábujj" },
+            { en: "brain", hu: "agy" },
+            { en: "lungs", hu: "tüdő" },
+            { en: "heart", hu: "szív" },
+            { en: "liver", hu: "máj" },
+            { en: "kidney", hu: "vese" }
+        ].filter(item => item.hu.trim() !== ""); // Filter out empty entries if any
+
+        // --- CARDS LOGIC ---
+        let currentCardIndex = 0;
+        let isFlipped = false;
+
+        function updateCard() {
+            const item = vocabData[currentCardIndex];
+            document.getElementById('card-word').textContent = item.en;
+            document.getElementById('card-translation').textContent = item.hu;
+            document.getElementById('card-counter').textContent = `${currentCardIndex + 1}. / ${vocabData.length}. szó`;
+            
+            isFlipped = false;
+            document.getElementById('card-translation').classList.add('hidden');
+            document.getElementById('card-hint-text').classList.remove('hidden');
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const transEl = document.getElementById('card-translation');
+            const hintEl = document.getElementById('card-hint-text');
+            if (isFlipped) {
+                transEl.classList.remove('hidden');
+                hintEl.classList.add('hidden');
+            } else {
+                transEl.classList.add('hidden');
+                hintEl.classList.remove('hidden');
+            }
+        }
+
+        function nextCard() {
+            currentCardIndex = (currentCardIndex + 1) % vocabData.length;
+            updateCard();
+        }
+
+        function prevCard() {
+            currentCardIndex = (currentCardIndex - 1 + vocabData.length) % vocabData.length;
+            updateCard();
+        }
+
+        function initVocabGrid() {
+            const grid = document.getElementById('vocab-grid');
+            grid.innerHTML = vocabData.map((item, idx) => `
+                <div onclick="goToCard(${idx})" class="p-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg text-sm cursor-pointer transition border border-slate-100 flex justify-between">
+                    <span class="font-medium">${item.en}</span>
+                    <span class="text-slate-400">${item.hu}</span>
+                </div>
+            `).join('');
+        }
+
+        function goToCard(idx) {
+            currentCardIndex = idx;
+            updateCard();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- QUIZ LOGIC ---
+        let quizQuestions = [];
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        function startQuiz() {
+            // Shuffle vocab and take up to 10 questions
+            const shuffled = [...vocabData].sort(() => 0.5 - Math.random());
+            quizQuestions = shuffled.slice(0, 10);
+            currentQuizIndex = 0;
+            score = 0;
+            
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('quiz-results').classList.add('hidden');
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            if (currentQuizIndex >= quizQuestions.length) {
+                showQuizResults();
+                return;
+            }
+
+            const q = quizQuestions[currentQuizIndex];
+            document.getElementById('quiz-progress').textContent = `Kérdés: ${currentQuizIndex + 1} / ${quizQuestions.length}`;
+            document.getElementById('quiz-score').textContent = `Pontszám: ${score}`;
+            document.getElementById('quiz-question').textContent = `Mi a magyar jelentése: "${q.en}"?`;
+
+            // Pick 3 wrong options
+            const wrongOptions = vocabData
+                .filter(item => item.hu !== q.hu)
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3)
+                .map(item => item.hu);
+
+            const options = [...wrongOptions, q.hu].sort(() => 0.5 - Math.random());
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = options.map(opt => `
+                <button onclick="checkAnswer('${opt.replace(/'/g, "\\'")}', '${q.hu.replace(/'/g, "\\'")}')" 
+                    class="p-4 text-left font-medium bg-slate-50 hover:bg-indigo-50 hover:border-indigo-300 border border-slate-200 rounded-xl transition text-slate-700 shadow-sm">
+                    ${opt}
+                </button>
+            `).join('');
+        }
+
+        function checkAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('#quiz-options button');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent.trim() === correct) {
+                    btn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-800');
+                } else if (btn.textContent.trim() === selected) {
+                    btn.classList.add('bg-rose-100', 'border-rose-500', 'text-rose-800');
+                }
+            });
+
+            if (selected === correct) {
+                score++;
+            }
+
+            setTimeout(() => {
+                currentQuizIndex++;
+                loadQuizQuestion();
+            }, 1200);
+        }
+
+        function showQuizResults() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-results').classList.remove('hidden');
+            document.getElementById('final-score-text').textContent = `Elért pontszámod: ${score} / ${quizQuestions.length}`;
+        }
+
+        function restartQuiz() {
+            startQuiz();
+        }
+
+        // --- TABS LOGIC ---
+        function switchTab(tab) {
+            const cardsSec = document.getElementById('section-cards');
+            const quizSec = document.getElementById('section-quiz');
+            const btnCards = document.getElementById('btn-cards');
+            const btnQuiz = document.getElementById('btn-quiz');
+
+            if (tab === 'cards') {
+                cardsSec.classList.remove('hidden');
+                quizSec.classList.add('hidden');
+                btnCards.className = "px-5 py-2.5 rounded-xl font-semibold transition bg-indigo-600 text-white shadow-md";
+                btnQuiz.className = "px-5 py-2.5 rounded-xl font-semibold transition bg-white text-slate-700 hover:bg-slate-100 shadow-sm border border-slate-200";
+            } else {
+                cardsSec.classList.add('hidden');
+                quizSec.classList.remove('hidden');
+                btnQuiz.className = "px-5 py-2.5 rounded-xl font-semibold transition bg-indigo-600 text-white shadow-md";
+                btnCards.className = "px-5 py-2.5 rounded-xl font-semibold transition bg-white text-slate-700 hover:bg-slate-100 shadow-sm border border-slate-200";
+                startQuiz();
+            }
+        }
+
+        // Initialize app
+        updateCard();
+        initVocabGrid();
+    </script>
+</body>
+</html>
+```eof
+
+### Összefoglalás
+Készítettem egy vadonatúj, önálló **Testrészek (Body Parts) szótanulót és gyakorló tesztet** a dokumentumodban szereplő szókincs alapján egyetlen modern fájlban. 
+
+* **Szókártyák mód:** Lépkedhetsz előre-hátra a szavak között, és egy kattintással felfedheted a magyar jelentést.
+* **Gyakorló teszt mód:** Ha átváltasz a tesztre, véletlenszerűen generál 4 válaszos feleletválasztós kérdéseket a begyakorolt szavakból.
+* **Teljes szószedet:** Alul áttekintheted az összes szót egyszerre, és bármelyikre rákattintva azonnal arra a kártyára ugratsz.
+
+Jó gyakorlást kívánok hozzá! Ha szeretnéd, ezt is fel tudod tölteni egyetlen kattintással a GitHubra, de amíg gondolkodsz a strukturáláson, helyben is tökéletesen használható.
